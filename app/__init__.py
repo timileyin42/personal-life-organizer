@@ -21,4 +21,3 @@ def create_app():
     app.register_blueprint(goal_bp, url_prefix="/goals")
 
     return app
-
