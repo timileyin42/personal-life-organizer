@@ -23,3 +23,11 @@ def create_goal():
     db.session.add(new_goal)
     db.session.commit()
     return jsonify({"message": "Goal created successfully!", "goal": new_goal.to_dict()}), 201
+
+@goal_bp.route("/", methods=["GET"])
+@jwt_required()
+def get_goals():
+    current_user_id = get_jwt_identity()
+    goals = Goal.query.filter_by(user_id=current_user_id).all()
+    return jsonify([goal.to_dict() for goal in goals]), 200
+

@@ -9,7 +9,10 @@ class Goal(db.Model):
     priority = db.Column(db.String(20), default="Medium")  # Low, Medium, High
     completed = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False) 
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    # Relationship with tasks
+    tasks = db.relationship('Task', backref='goal', cascade='all, delete-orphan', lazy=True)
 
     def to_dict(self):
         return {
@@ -20,5 +23,6 @@ class Goal(db.Model):
             "priority": self.priority,
             "completed": self.completed,
             "created_at": self.created_at,
+            "tasks": [task.to_dict() for task in self.tasks]
         }
 
