@@ -18,6 +18,6 @@ def create_app():
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(task_bp, url_prefix="/tasks")
-    app.register_blueprint(goal_bp, url_prefix="/goals")
+    app.register_blueprint(goal_bp, url_prefix="/auth/goals")
 
     return app

@@ -6,7 +6,7 @@ from app.models.goal import Goal
 # Define the blueprint
 goal_bp = Blueprint('goal', __name__)
 
-# Protect all routes
+# Create a new goal
 @goal_bp.route("/", methods=["POST"])
 @jwt_required()
 def create_goal():
@@ -24,10 +24,10 @@ def create_goal():
     db.session.commit()
     return jsonify({"message": "Goal created successfully!", "goal": new_goal.to_dict()}), 201
 
+# Get all goals for the current user
 @goal_bp.route("/", methods=["GET"])
 @jwt_required()
 def get_goals():
     current_user_id = get_jwt_identity()
     goals = Goal.query.filter_by(user_id=current_user_id).all()
     return jsonify([goal.to_dict() for goal in goals]), 200
-
