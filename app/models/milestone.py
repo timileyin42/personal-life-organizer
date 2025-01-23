@@ -1,19 +1,14 @@
 from app.extensions import db
 from datetime import datetime
 
-class Goal(db.Model):
+class Milestone(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
     target_date = db.Column(db.DateTime, nullable=True)
-    priority = db.Column(db.String(20), default="Medium")  # Low, Medium, High
     completed = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-
-    # Relationship with tasks
-    tasks = db.relationship('Task', backref='goal', cascade='all, delete-orphan', lazy=True)
-    milestones = db.relationship("Milestone", backref="goal", lazy=True)
+    goal_id = db.Column(db.Integer, db.ForeignKey("goal.id"), nullable=False)
 
     def to_dict(self):
         return {
@@ -21,9 +16,7 @@ class Goal(db.Model):
             "title": self.title,
             "description": self.description,
             "target_date": self.target_date,
-            "priority": self.priority,
             "completed": self.completed,
             "created_at": self.created_at,
-            "tasks": [task.to_dict() for task in self.tasks]
         }
 

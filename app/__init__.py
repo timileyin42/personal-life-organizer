@@ -4,6 +4,7 @@ from .routes.auth import auth_bp
 from .routes.task import task_bp
 from .routes.goal import goal_bp
 from .routes.logs import log_bp
+from .routes.milestone import milestone_bp
 
 def create_app():
     app = Flask(__name__)
@@ -21,6 +22,6 @@ def create_app():
     app.register_blueprint(task_bp, url_prefix="/tasks")
     app.register_blueprint(goal_bp, url_prefix="/auth/goals")
     app.register_blueprint(log_bp, url_prefix="/logs")
-
+    app.register_blueprint(milestone_bp, url_prefix="/milestones")
 
     return app
