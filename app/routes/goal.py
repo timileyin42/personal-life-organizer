@@ -4,6 +4,11 @@ from app.extensions import db
 from app.models.goal import Goal
 from app.logs.middleware import log_action
 from app.utils.progress_utils import calculate_goal_progress, calculate_overall_progress
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Define the blueprint
 goal_bp = Blueprint('goal', __name__)
@@ -36,8 +41,10 @@ def create_goal():
         return jsonify({"message": "Goal created successfully!", "goal": new_goal.to_dict()}), 201
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Failed to create goal: {str(e)}")  # Log the error
         return jsonify({"error": "Failed to create goal", "details": str(e)}), 500
 
+# Retrieve goals
 @goal_bp.route("/", methods=["GET"])
 @jwt_required()
 def get_goals():
@@ -47,8 +54,27 @@ def get_goals():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
+    # Search and filter parameters
+    search_query = request.args.get("search", "").lower()
+    priority_filter = request.args.get("priority", "").capitalize()
+
     try:
-        pagination = Goal.query.filter_by(user_id=current_user_id).paginate(page=page, per_page=per_page)
+        # Base query
+        query = Goal.query.filter_by(user_id=current_user_id)
+
+        # Apply search filter
+        if search_query:
+            query = query.filter(
+                (Goal.title.ilike(f"%{search_query}%")) |
+                (Goal.description.ilike(f"%{search_query}%"))
+            )
+
+        # Apply priority filter
+        if priority_filter in ["Low", "Medium", "High"]:
+            query = query.filter_by(priority=priority_filter)
+
+        # Apply pagination
+        pagination = query.paginate(page=page, per_page=per_page)
         goals = [goal.to_dict() for goal in pagination.items]
 
         return jsonify({
@@ -58,6 +84,7 @@ def get_goals():
             "current_page": pagination.page
         }), 200
     except Exception as e:
+        logger.error(f"Failed to retrieve goals: {str(e)}")  # Log the error
         return jsonify({"error": "Failed to retrieve goals", "details": str(e)}), 500
 
 # Progress for a specific goal
@@ -71,14 +98,21 @@ def get_goal_progress(goal_id):
     if not goal:
         return jsonify({"error": "Goal not found or unauthorized"}), 404
 
-    progress = calculate_goal_progress(goal_id)
-    return jsonify({"goal_id": goal_id, "progress_percentage": progress}), 200
-
+    try:
+        progress = calculate_goal_progress(goal_id)
+        return jsonify({"goal_id": goal_id, "progress_percentage": progress}), 200
+    except Exception as e:
+        logger.error(f"Failed to get progress for goal {goal_id}: {str(e)}")  # Log the error
+        return jsonify({"error": "Failed to retrieve goal progress", "details": str(e)}), 500
 
 # Overall progress for all goals
 @goal_bp.route("/progress", methods=["GET"])
 @jwt_required()
 def get_overall_progress():
     user_id = get_jwt_identity()
-    progress = calculate_overall_progress(user_id)
-    return jsonify({"user_id": user_id, "overall_progress_percentage": progress}), 200
+    try:
+        progress = calculate_overall_progress(user_id)
+        return jsonify({"user_id": user_id, "overall_progress_percentage": progress}), 200
+    except Exception as e:
+        logger.error(f"Failed to get overall progress for user {user_id}: {str(e)}")  # Log the error
+        return jsonify({"error": "Failed to retrieve overall progress", "details": str(e)}), 500
