@@ -9,3 +9,6 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///app.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
+    MAILJET_API_KEY = os.getenv("MAILJET_API_KEY")
+    MAILJET_API_SECRET = os.getenv("MAILJET_API_SECRET")
+    MAILJET_SENDER_EMAIL = os.getenv("MAILJET_SENDER_EMAIL")
