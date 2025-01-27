@@ -13,9 +13,14 @@ class Goal(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
+    # New fields for sharing
+    shared_with = db.Column(db.String(255), nullable=True)  # Comma-separated user IDs or usernames
+    permission_level = db.Column(db.String(20), default="view")  # 'view' or 'edit'
+
     # Relationship with tasks
     tasks = db.relationship('Task', backref='goal', cascade='all, delete-orphan', lazy=True)
     milestones = db.relationship("Milestone", backref="goal", lazy=True)
+    comments = db.relationship("Comment", backref="goal", lazy=True)  # New relationship for comments
 
     def to_dict(self):
         return {
@@ -28,6 +33,7 @@ class Goal(db.Model):
             "reminder_time": self.reminder_time,
             "notified": self.notified,
             "created_at": self.created_at,
-            "tasks": [task.to_dict() for task in self.tasks]
+            "tasks": [task.to_dict() for task in self.tasks],
+            "shared_with": self.shared_with,
+            "permission_level": self.permission_level
         }
-

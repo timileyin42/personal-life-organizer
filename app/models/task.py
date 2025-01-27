@@ -11,6 +11,12 @@ class Task(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     goal_id = db.Column(db.Integer, db.ForeignKey('goal.id'), nullable=False)  # Link to a Goal
 
+    # New fields for sharing
+    shared_with = db.Column(db.String(255), nullable=True)  # Comma-separated user IDs or usernames
+    permission_level = db.Column(db.String(20), default="view")  # 'view' or 'edit'
+
+    comments = db.relationship("Comment", backref="task", lazy=True)  # New relationship for comments
+
     def to_dict(self):
         return {
             "id": self.id,
@@ -20,6 +26,7 @@ class Task(db.Model):
             "reminder_time": self.reminder_time,
             "notified": self.notified,
             "created_at": self.created_at,
-            "goal_id": self.goal_id
+            "goal_id": self.goal_id,
+            "shared_with": self.shared_with,
+            "permission_level": self.permission_level
         }
-
