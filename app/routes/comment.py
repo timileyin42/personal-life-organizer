@@ -82,6 +82,22 @@ def get_goal_comments(goal_id):
     comments = Comment.query.filter_by(goal_id=goal_id).all()
     return jsonify({"comments": [comment.to_dict() for comment in comments]}), 200
 
+# Get all comments for the authenticated user's tasks
+@comment_bp.route("/tasks", methods=["GET"])
+@jwt_required()
+def get_all_task_comments():
+    user_id = get_jwt_identity()
+    comments = Comment.query.filter(Comment.user_id == user_id, Comment.task_id != None).all()  # Fetch all comments for tasks
+    return jsonify({"comments": [comment.to_dict() for comment in comments]}), 200
+
+# Get all comments for the authenticated user's goals
+@comment_bp.route("/goals", methods=["GET"])
+@jwt_required()
+def get_all_goal_comments():
+    user_id = get_jwt_identity()
+    comments = Comment.query.filter(Comment.user_id == user_id, Comment.goal_id != None).all()  # Fetch all comments for goals
+    return jsonify({"comments": [comment.to_dict() for comment in comments]}), 200
+
 # Delete a comment
 @comment_bp.route("/<int:comment_id>", methods=["DELETE"])
 @jwt_required()
@@ -91,6 +107,9 @@ def delete_comment(comment_id):
 
     if not comment:
         return jsonify({"error": "Comment not found"}), 404
+
+    # Debugging: Log the user IDs
+    print(f"User  ID from token: {user_id}, Comment User ID: {comment.user_id}")
 
     # Check if the user is the owner of the comment
     if comment.user_id != user_id:
