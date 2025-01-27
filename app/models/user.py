@@ -6,6 +6,7 @@ class User(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
+    name = db.Column(db.String(100), nullable=True)
     role = db.Column(db.String(20), default="regular_user")  # 'admin' or 'regular_user'
 
     # New fields for user preferences
@@ -26,6 +27,7 @@ class User(db.Model):
         """Updates user profile details."""
         self.username = data.get("username", self.username)
         self.email = data.get("email", self.email)
+        self.name = data.get("name", self.name)
         self.profile_picture = data.get("profile_picture", self.profile_picture)
 
     def update_preferences(self, data):
@@ -40,10 +42,10 @@ class User(db.Model):
             "id": self.id,
             "username": self.username,
             "email": self.email,
+            "name": self.name,
             "profile_picture": self.profile_picture,
             "notification_email": self.notification_email,
             "notification_in_app": self.notification_in_app,
             "dark_mode": self.dark_mode,
             "role": self.role,
         }
-
