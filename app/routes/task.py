@@ -2,8 +2,11 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models.task import Task
 from app.models.goal import Goal
+from app.models.user import User  # Assuming User model is needed for points and streaks
 from app.extensions import db
+from datetime import datetime
 
+# Blueprint for task routes
 task_bp = Blueprint("task", __name__)
 
 @task_bp.route("/", methods=["POST"])
@@ -57,4 +60,45 @@ def get_tasks():
         return jsonify(tasks), 200
     except Exception as e:
         return jsonify({"error": "Failed to retrieve tasks", "details": str(e)}), 500
+
+@task_bp.route("/<int:task_id>", methods=["PATCH"])
+@jwt_required()
+def complete_task(task_id):
+    task = Task.query.get(task_id)
+
+    if not task:
+        return jsonify({"error": "Task not found"}), 404
+
+    if task.completed:
+        return jsonify({"message": "Task already completed"}), 400
+
+    # Mark task as completed
+    task.completed = True
+    task.completed_date = datetime.utcnow()
+
+    # Get the user from the JWT
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Check if task was completed before the deadline
+    if task.due_date and task.completed_date < task.due_date:
+        user.points = user.points + 10  # Award 10 points for early completion
+
+    # Update streak if the user has completed tasks consecutively
+    last_task = Task.query.filter_by(user_id=user_id, completed=True).order_by(Task.completed_date.desc()).first()
+    if last_task and (task.completed_date - last_task.completed_date).days == 1:
+        user.streak = user.streak + 1  # Increase streak count
+    else:
+        user.streak = 1  # Reset streak if not consecutive
+
+    db.session.commit()
+    return jsonify({
+        "message": "Task completed successfully!",
+        "task": task.to_dict(),
+        "points": user.points,
+        "streak": user.streak
+    }), 200
 

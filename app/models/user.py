@@ -9,11 +9,16 @@ class User(db.Model):
     name = db.Column(db.String(100), nullable=True)
     role = db.Column(db.String(20), default="regular_user")  # 'admin' or 'regular_user'
 
-    # New fields for user preferences
+    # Fields for user preferences
     profile_picture = db.Column(db.String(255), nullable=True)
     notification_email = db.Column(db.Boolean, default=True)  # Email notifications
     notification_in_app = db.Column(db.Boolean, default=True)  # In-app notifications
     dark_mode = db.Column(db.Boolean, default=False)  # Dark mode preference
+
+    # Fields for gamification
+    points = db.Column(db.Integer, default=0)  # Total points earned by the user
+    streak = db.Column(db.Integer, default=0)  # Consecutive days of task completion
+    badges = db.relationship("Badge", backref="user", lazy=True)  # Relationship to earned badges
 
     def set_password(self, password):
         """Sets the password hash for the user."""
@@ -36,6 +41,18 @@ class User(db.Model):
         self.notification_in_app = data.get("notification_in_app", self.notification_in_app)
         self.dark_mode = data.get("dark_mode", self.dark_mode)
 
+    def add_points(self, points):
+        """Adds points to the user's total."""
+        self.points += points
+
+    def reset_streak(self):
+        """Resets the user's streak to zero."""
+        self.streak = 0
+
+    def increment_streak(self):
+        """Increments the user's streak by one."""
+        self.streak += 1
+
     def to_dict(self):
         """Converts user information to a dictionary format."""
         return {
@@ -48,4 +65,7 @@ class User(db.Model):
             "notification_in_app": self.notification_in_app,
             "dark_mode": self.dark_mode,
             "role": self.role,
+            "points": self.points,
+            "streak": self.streak,
+            "badges": [badge.to_dict() for badge in self.badges],
         }
