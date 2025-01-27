@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.models.comment import Comment  # Assuming you have created a Comment model
+from app.models.comment import Comment
 from app.models.task import Task
 from app.models.goal import Goal
 from app.extensions import db
