@@ -66,5 +66,9 @@ def profile():
     if not user:
         return jsonify({"message": "User  not found"}), 404
 
-    # Return user information as JSON
-    return jsonify(user.to_dict()), 200
+    # Return user information as JSON, including points and streak
+    user_info = user.to_dict()
+    user_info["points"] = user.points
+    user_info["streak"] = user.streak
+
+    return jsonify(user_info), 200
