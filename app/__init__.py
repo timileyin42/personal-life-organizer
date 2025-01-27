@@ -8,6 +8,7 @@ from .routes.milestone import milestone_bp
 from app.routes.analytics import analytics_bp
 from .routes.email import email_bp
 from .scheduler import configure_scheduler
+from .routes.settings import settings_bp
 
 def create_app():
     app = Flask(__name__)
@@ -30,6 +31,8 @@ def create_app():
     app.register_blueprint(milestone_bp, url_prefix="/milestones")
     app.register_blueprint(analytics_bp)
     app.register_blueprint(email_bp, url_prefix="/email")
+    app.register_blueprint(settings_bp, url_prefix="/user")
+
 
 
     return app
