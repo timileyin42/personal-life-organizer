@@ -9,6 +9,7 @@ class Task(db.Model):
     reminder_time = db.Column(db.DateTime, nullable=True)
     notified = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     goal_id = db.Column(db.Integer, db.ForeignKey('goal.id'), nullable=False)  # Link to a Goal
 
     # New fields for sharing
@@ -28,5 +29,6 @@ class Task(db.Model):
             "created_at": self.created_at,
             "goal_id": self.goal_id,
             "shared_with": self.shared_with,
+            "user_id": self.user_id,
             "permission_level": self.permission_level
         }

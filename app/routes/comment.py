@@ -98,18 +98,34 @@ def get_all_goal_comments():
     comments = Comment.query.filter(Comment.user_id == user_id, Comment.goal_id != None).all()  # Fetch all comments for goals
     return jsonify({"comments": [comment.to_dict() for comment in comments]}), 200
 
-# Delete a comment
-@comment_bp.route("/<int:comment_id>", methods=["DELETE"])
+# Delete a comment associated with a task
+@comment_bp.route("/task/comment/<int:comment_id>", methods=["DELETE"])
 @jwt_required()
-def delete_comment(comment_id):
+def delete_task_comment(comment_id):
     user_id = get_jwt_identity()
     comment = Comment.query.get(comment_id)
 
     if not comment:
         return jsonify({"error": "Comment not found"}), 404
 
-    # Debugging: Log the user IDs
-    print(f"User  ID from token: {user_id}, Comment User ID: {comment.user_id}")
+    # Check if the user is the owner of the comment
+    if comment.user_id != user_id:
+        return jsonify({"error": "Unauthorized to delete this comment"}), 403
+
+    db.session.delete(comment)
+    db.session.commit()
+
+    return jsonify({"message": "Comment deleted successfully!"}), 200
+
+# Delete a comment associated with a goal
+@comment_bp.route("/goal/comment/<int:comment_id>", methods=["DELETE"])
+@jwt_required()
+def delete_goal_comment(comment_id):
+    user_id = get_jwt_identity()
+    comment = Comment.query.get(comment_id)
+
+    if not comment:
+        return jsonify({"error": "Comment not found"}), 404
 
     # Check if the user is the owner of the comment
     if comment.user_id != user_id:
